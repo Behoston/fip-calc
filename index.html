@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kalkulator dawek GS</title>
+    <!--  DEV  -->
+    <script src="https://unpkg.com/vue@next"></script>
+    <!--    PROD    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.1.2/vue.global.prod.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oxygen">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://www.unpkg.com/bulma@0.9.3/css/bulma.css"/>
+    <link rel="stylesheet" href="https://www.unpkg.com/bulma@0.9.3/css/bulma-rtl.css"/>
+    <!--    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">-->
+    <!--    <script src="https://cdn.jsdelivr.net/npm/lit-css@0.1.3/index.min.js"></script>-->
+</head>
+
+<body>
+<h1 class="title is-1">Kalkulator dawek GS</h1>
+<div class="tile is-ancestor" id="app">
+    <div class="tile is-4 is-vertical notification is-warning is-child">
+        <h2 class="title is-3">Instrukcja</h2>
+        <p class="tile is-child">
+            Uzupełnij wszystkie wymagane pola i zobacz, ile mililitrów leku musisz podawać kotu.
+            Pamiętaj o tym, aby podawać lek codziennie o dokładnie tej samej godzinie!
+        </p>
+        <p class="tile is-child">
+            Jeśli chcesz policzyć koszty kuracji, wpisz również dane w sekcji kalkulacji ceny.
+            Sekcja kalkulatora musi być wtedy uzupełniona!
+        </p>
+        <p class="tile is-child">
+            Miej na uwadze, że wyliczenie kosztów będzie na pewno zaniżone. Nie są brane pod uwagę takie czynniki jak
+            straty podczas nabierania/podawania leku lub to, że kot zwykle bardzo szybko przybiera na wadze podczas paru
+            pierwszych tygodni terapii.
+        </p>
+        <p class="tile is-child notification is-danger">
+            Dane zawarte na stronie są przybliżone (w szczególności typowe dawki).
+            Terapia powinna być dobrana przez weterynarza, który ma już doświadczenie w leczeniu FIP.
+        </p>
+    </div>
+    <div class="tile is-4 is-vertical notification is-success is-child">
+        <div class="tile is-child">
+            <h2 class="title is-3">Kalkulator</h2>
+
+            <div class="field">
+                <label for="input-waga" class="label"> Waga kota (kg)</label>
+                <div class="control">
+                    <input id="input-waga" class="input" min="0" max="10" type="number" step="0.1"
+                           v-model.number="waga_kg">
+                </div>
+                <p class="help">
+                    Kota należy regularnie ważyć, najlepiej codziennie przed podaniem leku. Minimalnie raz w tygodniu.
+                </p>
+            </div>
+
+            <div class="field">
+                <label class="label" for="input-stezenie">Stężenie leku, jaki posiadasz (mg/ml) </label>
+                <div class="control">
+                    <input id="input-stezenie" class="input" min="0" max="50" type="number" step="0.1"
+                           v-model.number="stezenie_mg_na_ml">
+                    <p class="help">Stężenie jest podane na stronie producenta. Zazwyczaj jest to 10, 15, 17 lub 20
+                        mg/ml.</p>
+                </div>
+            </div>
+            <div class="field">
+                <label for="input-dawka" class="label"> Dawka leku, jaką chcesz podać (mg/kg)</label>
+                <div class="control">
+                    <input id="input-dawka" class="input" min="0" type="number" max="50" step="0.1"
+                           v-model.number="dawka_mg_na_kg">
+                </div>
+                <p class="help">
+                    Dawka jest zależna od typu FIPa, przy tak zwanym "mokrym" jest to zwykle od 6 do 8mg/kg masy ciała
+                    kota.
+                    Przy typie ocznym 8 do 10 mg/kg masy ciała kota a w przypadku FIP neurologicznego 10 do 12mg/kg masy
+                    ciała kota.
+                </p>
+            </div>
+        </div>
+        <div class="tile is-child notification is-green">
+            <h2 class="title is-3">Wynik</h2>
+            <b v-if="ilosc">Powinieneś podawać kotu {{ ilosc.toFixed(2) }} ml leku.</b>
+            <b v-else>Uzupełnij wszystkie potrzebne informacje!</b>
+        </div>
+    </div>
+
+    <div class="tile is-4 is-vertical notification is-info is-child">
+        <div class="tile is-child">
+            <h2 class="title is-3">Kalkulator ceny</h2>
+
+            <div class="field">
+                <label for="input-cena-fiolki" class="label">Cena za jedną fiolkę</label>
+                <div class="control">
+                    <input id="input-cena-fiolki" type="number" class="input" v-model.number="cena_fiolka">
+                </div>
+                <p class="help">
+                    Cena za fiolkę. Waluta dowolna w takiej jak podasz, w takiej będzie wynik.
+                </p>
+            </div>
+            <div class="field">
+                <label for="input-wysylka" class="label">Koszt dostawy</label>
+                <div class="control">
+                    <input type="number" class="input" id="input-wysylka" v-model.number="cena_wysylka">
+                </div>
+                <p class="help">Koszty wysyłki paczki z fiolkami (zwykle stałe niezależnie od wielkości zamówienia)</p>
+            </div>
+            <div class="field">
+                <label class="label" for="input-dni">Pozostała ilość dni terapii</label>
+                <div class="control">
+                    <input id="input-dni" type="number" v-model.number="dni_terapi" class="input" step="1" min="1">
+                </div>
+                <p class="help">
+                    Zwykle terapia trwa 12 tygodni (84 dni), jeśli wyniki są zadowalające.
+                    Jeżeli liczysz, ile jeszcze wydasz, wpisz na ile dni potrzebujesz dokupić leku.
+                </p>
+            </div>
+            <div class="field">
+                <label class="label" for="input-pojemnosc">Pojemność fiolki</label>
+                <div class="control">
+                    <input id="input-pojemnosc" type="number" v-model.number="dni_terapi" class="input" step="1"
+                           min="1">
+                </div>
+                <p class="help">
+                    Pojemność fiolki leku w mililitrach. Zwykle jest nieco ponad 5 ml, jednak można przyjąć,
+                    że te dodatkowe parę kropel idzie na straty.
+                </p>
+            </div>
+        </div>
+        <div class="tile is-child notification is-link">
+            <h2 class="title is-3">Koszt</h2>
+            <b v-if="koszt">Terapia będzie Cię kosztować przynajmniej {{ koszt.toFixed(2) }}.</b>
+            <b v-else>Uzupełnij wszystkie potrzebne informacje!</b>
+        </div>
+
+    </div>
+</div>
+</body>
+<script src="./app.js"></script>
+<script>
+    const mountedApp = app.mount('#app')
+</script>
+</html>
