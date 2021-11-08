@@ -12,25 +12,25 @@ const app = Vue.createApp({
     },
     mounted() {
         if (localStorage.waga_kg) {
-            this.waga_kg = localStorage.waga_kg
+            this.waga_kg = parseFloat(localStorage.waga_kg)
         }
         if (localStorage.dawka_mg_na_kg) {
-            this.dawka_mg_na_kg = localStorage.dawka_mg_na_kg
+            this.dawka_mg_na_kg = parseFloat(localStorage.dawka_mg_na_kg)
         }
         if (localStorage.stezenie_mg_na_ml) {
-            this.stezenie_mg_na_ml = localStorage.stezenie_mg_na_ml
+            this.stezenie_mg_na_ml = parseFloat(localStorage.stezenie_mg_na_ml)
         }
         if (localStorage.cena_wysylka) {
             this.cena_wysylka = parseFloat(localStorage.cena_wysylka)
         }
         if (localStorage.dni_terapi) {
-            this.dni_terapi = localStorage.dni_terapi
+            this.dni_terapi = parseFloat(localStorage.dni_terapi)
         }
         if (localStorage.cena_fiolka) {
-            this.cena_fiolka = localStorage.cena_fiolka
+            this.cena_fiolka = parseFloat(localStorage.cena_fiolka)
         }
         if (localStorage.pojemnosc_fiolka) {
-            this.pojemnosc_fiolka = localStorage.pojemnosc_fiolka
+            this.pojemnosc_fiolka = parseFloat(localStorage.pojemnosc_fiolka)
         }
     },
     watch: {
